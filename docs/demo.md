@@ -31,15 +31,20 @@ cd mobile
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
 ```
 
+El override es útil para el emulador porque `10.0.2.2` apunta a la computadora anfitriona.
+
 ### Teléfono físico
 
-El teléfono y la notebook deben estar en la misma red. Usar la IP local real de la notebook, permitir el puerto 8000 en el firewall y ejecutar, por ejemplo:
+El teléfono y la notebook deben conectarse al mismo hotspot. Generar e instalar el APK sin parámetros especiales:
 
 ```powershell
-flutter run -d DEVICE_ID --dart-define=API_BASE_URL=http://192.168.100.72:8000
+cd mobile
+flutter build apk --release
 ```
 
-`192.168.100.72` es únicamente un ejemplo. No usar `localhost`, porque en el teléfono apunta al propio teléfono.
+En el teléfono, abrir **Configuración → Dirección del backend** e ingresar la IPv4 real de la notebook y el puerto, por ejemplo `http://192.168.43.25:8000`. La dirección queda guardada y puede cambiarse cada vez que el hotspot asigne otra IP. No usar `localhost`, porque en el teléfono apunta al propio teléfono.
+
+Como alternativa, la dirección inicial del APK se cambia en `mobile/lib/core/constants/app_config.dart`, constante `bundledApiBaseUrl`, antes de compilar.
 
 ## Guion de cinco minutos
 
@@ -120,6 +125,6 @@ SQLite + interfaz accesible
 - Confirmar que `/health` responde desde la notebook.
 - Confirmar que el backend usa `--host 0.0.0.0`.
 - Confirmar que teléfono y notebook están en la misma red.
-- Confirmar que `API_BASE_URL` contiene la IP real y el puerto 8000.
+- Confirmar en **Configuración → Dirección del backend** que figuran la IP real de la notebook y el puerto 8000.
 - Confirmar que `DEMO_MODE=true` está en `backend/.env` y reiniciar Uvicorn después de cambiarlo.
 

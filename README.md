@@ -76,20 +76,18 @@ flutter pub get
 dart format .
 flutter analyze
 flutter test
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
+flutter run
 ```
 
-`10.0.2.2` apunta a la computadora anfitriona desde el emulador Android. La URL por defecto de desarrollo es `http://10.0.2.2:8000`; no es una URL de producción.
+La URL predeterminada se compila dentro del APK desde `mobile/lib/core/constants/app_config.dart`. El valor actual es `http://192.168.100.18:8000` y se puede cambiar en la constante `bundledApiBaseUrl` antes de compilar.
 
 ## Celular Android real
 
-`localhost` en el teléfono es el propio teléfono, no la computadora. Ambos dispositivos deben estar en la misma red local y el firewall debe permitir el puerto 8000. Se debe pasar la IP local de la computadora, por ejemplo:
+`localhost` en el teléfono es el propio teléfono, no la computadora. Ambos dispositivos deben estar en la misma red local y el firewall debe permitir el puerto 8000.
 
-```powershell
-flutter run --dart-define=API_BASE_URL=http://192.168.1.100:8000
-```
+Después de instalar el APK, abrir **Configuración → Dirección del backend** e ingresar la IP que la red compartida asignó a la notebook, por ejemplo `http://192.168.43.25:8000`. El valor queda guardado en el teléfono y se usa desde el siguiente análisis, sin reinstalar la aplicación.
 
-`192.168.1.100` es solo un ejemplo; reemplazarlo por la IP real del equipo.
+También se puede dejar fija otra dirección para futuras compilaciones modificando `bundledApiBaseUrl` en el código.
 
 Ejemplo indicando un dispositivo concreto:
 
@@ -97,7 +95,7 @@ Ejemplo indicando un dispositivo concreto:
 flutter run -d DEVICE_ID --dart-define=API_BASE_URL=http://192.168.100.72:8000
 ```
 
-El teléfono y la computadora deben estar en la misma red. El backend debe ejecutarse con `--host 0.0.0.0` y el firewall debe permitir el puerto 8000.
+`--dart-define` queda disponible como override opcional de compilación; ya no es necesario para ejecutar ni generar el APK. El teléfono y la computadora deben estar en la misma red. El backend debe ejecutarse con `--host 0.0.0.0` y el firewall debe permitir el puerto 8000.
 
 ## Variables de entorno
 
@@ -106,7 +104,7 @@ El backend lee:
 - `GOOGLE_SAFE_BROWSING_API_KEY`: opcional. Sin clave se usan únicamente heurísticas.
 - `DEMO_MODE`: `false` por defecto. Cuando vale `true`, habilita solamente los tres casos controlados documentados en `docs/demo.md`.
 
-La app lee `API_BASE_URL` mediante `--dart-define`. No se deben guardar URLs de producción en el código.
+La app incluye `bundledApiBaseUrl` dentro del APK, admite el override opcional `API_BASE_URL` mediante `--dart-define` y permite guardar una dirección distinta desde Configuración. Esta facilidad y el uso de HTTP están destinados únicamente a la demostración académica local.
 
 ## Integración Android
 
@@ -121,13 +119,13 @@ cd mobile
 flutter build apk --debug
 ```
 
-Release para una computadora de ejemplo en la red local:
+Release usando la URL incluida en el código:
 
 ```powershell
-flutter build apk --release --dart-define=API_BASE_URL=http://192.168.100.72:8000
+flutter build apk --release
 ```
 
-La IP es solo un ejemplo. El APK se genera en `mobile/build/app/outputs/flutter-apk/`. El manifiesto permite HTTP sin cifrar únicamente para facilitar la demostración académica local; una publicación real debe usar HTTPS y una configuración de seguridad más restrictiva.
+El APK se genera en `mobile/build/app/outputs/flutter-apk/`. Si la IP cambia al conectarse al hotspot, se corrige desde **Configuración → Dirección del backend**. El manifiesto permite HTTP sin cifrar únicamente para facilitar la demostración académica local; una publicación real debe usar HTTPS y una configuración de seguridad más restrictiva.
 
 La guía [docs/demo.md](docs/demo.md) contiene un recorrido reproducible de cinco minutos con casos controlados para los tres estados.
 
