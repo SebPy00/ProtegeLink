@@ -81,4 +81,28 @@ void main() {
       ),
     );
   });
+
+  test('loads the configured backend URL for every request', () async {
+    var currentBaseUrl = 'http://192.168.100.18:8000';
+    final requestedUrls = <Uri>[];
+    final client = ApiClient(
+      baseUrlLoader: () async => currentBaseUrl,
+      client: MockClient((request) async {
+        requestedUrls.add(request.url);
+        return http.Response('{}', 200);
+      }),
+    );
+
+    await client.get('/health');
+    currentBaseUrl = 'http://192.168.43.25:8000';
+    await client.get('/health');
+
+    expect(
+      requestedUrls,
+      [
+        Uri.parse('http://192.168.100.18:8000/health'),
+        Uri.parse('http://192.168.43.25:8000/health'),
+      ],
+    );
+  });
 }

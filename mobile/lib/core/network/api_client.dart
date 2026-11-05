@@ -4,22 +4,26 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:protegelink/core/constants/app_config.dart';
 import 'package:protegelink/core/errors/api_exception.dart';
+import 'package:protegelink/core/preferences/backend_preferences.dart';
 
 class ApiClient {
-  ApiClient({http.Client? client, String? baseUrl, Duration? timeout})
-      : _client = client ?? http.Client(),
+  ApiClient({
+    http.Client? client,
+    String? baseUrl,
+    Duration? timeout,
+    Future<String> Function()? baseUrlLoader,
+  })  : _client = client ?? http.Client(),
         _timeout = timeout ?? AppConfig.requestTimeout,
-        _baseUrl = (baseUrl ?? AppConfig.apiBaseUrl).replaceFirst(
-          RegExp(r'/$'),
-          '',
-        );
+        _fixedBaseUrl = baseUrl,
+        _baseUrlLoader = baseUrlLoader ?? BackendPreferences().getApiBaseUrl;
 
   final http.Client _client;
   final Duration _timeout;
-  final String _baseUrl;
+  final String? _fixedBaseUrl;
+  final Future<String> Function() _baseUrlLoader;
 
   Future<Map<String, dynamic>> get(String path) async {
-    return _send(() => _client.get(_uri(path)));
+    return _send(() async => _client.get(await _uri(path)));
   }
 
   Future<Map<String, dynamic>> post(
@@ -27,15 +31,19 @@ class ApiClient {
     required Map<String, dynamic> body,
   }) async {
     return _send(
-      () => _client.post(
-        _uri(path),
+      () async => _client.post(
+        await _uri(path),
         headers: const {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       ),
     );
   }
 
-  Uri _uri(String path) => Uri.parse('$_baseUrl$path');
+  Future<Uri> _uri(String path) async {
+    final configuredBaseUrl = _fixedBaseUrl ?? await _baseUrlLoader();
+    final baseUrl = configuredBaseUrl.replaceFirst(RegExp(r'/$'), '');
+    return Uri.parse('$baseUrl$path');
+  }
 
   Future<Map<String, dynamic>> _send(
     Future<http.Response> Function() request,
