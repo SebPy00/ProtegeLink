@@ -20,26 +20,29 @@ class HomePage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          Text('Protección', style: Theme.of(context).textTheme.headlineMedium),
-          const SizedBox(height: 16),
+          Text(
+            'Protección de enlaces',
+            style: Theme.of(context).textTheme.headlineMedium,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Revisá enlaces antes de abrirlos y detectá posibles señales de fraude.',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          const SizedBox(height: 20),
           Card(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline, size: 40),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      'Configuración pendiente',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
-                ],
+            child: ListTile(
+              contentPadding: const EdgeInsets.all(20),
+              leading: Icon(
+                Icons.shield_outlined,
+                size: 40,
+                color: Theme.of(context).colorScheme.primary,
               ),
+              title: const Text('Protección activa'),
+              subtitle: const Text('Lista para revisar enlaces'),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           FilledButton.icon(
             onPressed: () => context.push('/check'),
             icon: const Icon(Icons.link),
@@ -55,7 +58,13 @@ class HomePage extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: () => context.go('/help'),
             icon: const Icon(Icons.help_outline),
-            label: const Text('Consejos y ayuda'),
+            label: const Text('Consejos'),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => context.push('/settings'),
+            icon: const Icon(Icons.settings_outlined),
+            label: const Text('Configuración'),
           ),
         ],
       ),

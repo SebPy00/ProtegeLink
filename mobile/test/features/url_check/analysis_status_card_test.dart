@@ -24,14 +24,21 @@ void main() {
   testWidgets('renders SAFE with text and icon', (tester) async {
     await tester.pumpWidget(subject(AnalysisStatus.safe));
 
-    expect(find.text('SEGURO'), findsOneWidget);
+    expect(find.text('Este enlace parece seguro'), findsOneWidget);
     expect(find.byIcon(Icons.verified_user_outlined), findsOneWidget);
+  });
+
+  testWidgets('renders SUSPICIOUS with text and icon', (tester) async {
+    await tester.pumpWidget(subject(AnalysisStatus.suspicious));
+
+    expect(find.text('Este enlace podría ser sospechoso'), findsOneWidget);
+    expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
   });
 
   testWidgets('renders DANGEROUS with text and icon', (tester) async {
     await tester.pumpWidget(subject(AnalysisStatus.dangerous));
 
-    expect(find.text('PELIGROSO'), findsOneWidget);
+    expect(find.text('Sitio bloqueado'), findsOneWidget);
     expect(find.byIcon(Icons.gpp_bad_outlined), findsOneWidget);
   });
 }

@@ -16,7 +16,11 @@ SettingsDependency = Annotated[Settings, Depends(get_settings)]
 
 def get_analyzer(settings: SettingsDependency) -> UrlAnalyzerService:
     reputation = SafeBrowsingService(api_key=settings.google_safe_browsing_api_key)
-    return UrlAnalyzerService(HeuristicAnalyzer(), reputation)
+    return UrlAnalyzerService(
+        HeuristicAnalyzer(),
+        reputation,
+        demo_mode=settings.demo_mode,
+    )
 
 
 @router.post("/analyze", response_model=UrlAnalysisResponse)

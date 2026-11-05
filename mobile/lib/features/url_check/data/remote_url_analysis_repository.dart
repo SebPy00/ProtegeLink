@@ -1,3 +1,4 @@
+import 'package:protegelink/core/errors/api_exception.dart';
 import 'package:protegelink/core/network/api_client.dart';
 import 'package:protegelink/features/url_check/domain/url_analysis.dart';
 import 'package:protegelink/features/url_check/domain/url_analysis_repository.dart';
@@ -13,6 +14,12 @@ class RemoteUrlAnalysisRepository implements UrlAnalysisRepository {
       '/api/v1/urls/analyze',
       body: {'url': url},
     );
-    return UrlAnalysis.fromJson(json);
+    try {
+      return UrlAnalysis.fromJson(json);
+    } on Object {
+      throw const ApiException(
+        'No pudimos interpretar la respuesta del servicio. Intentá nuevamente.',
+      );
+    }
   }
 }

@@ -33,11 +33,11 @@ class UrlAnalysis {
   }
 
   Map<String, dynamic> toJson() => {
-    'url': url,
-    'domain': domain,
-    'status': status.name.toUpperCase(),
-    'risk_score': riskScore,
-    'reasons': reasons,
-    'analyzed_at': analyzedAt.toIso8601String(),
-  };
+        'url': url,
+        'domain': domain,
+        'status': status.name.toUpperCase(),
+        'risk_score': riskScore,
+        'reasons': reasons,
+        'analyzed_at': analyzedAt.toIso8601String(),
+      };
 }

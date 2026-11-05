@@ -19,13 +19,11 @@ El alcance actual es Android 10 o superior. No incluye iOS, web, cuentas de usua
 ## Arquitectura
 
 ```mermaid
-flowchart LR
-    U[Usuario en Android] --> F[App Flutter]
-    F -->|POST /api/v1/urls/analyze| A[API FastAPI]
-    A --> H[Heurísticas locales]
-    A --> S[Google Safe Browsing v5 opcional]
-    A --> F
-    F -. futuro .-> L[(Historial SQLite local)]
+flowchart TD
+    A[Android / Flutter] --> B[FastAPI]
+    B --> C[Heurísticas + Safe Browsing]
+    C --> D[SAFE / SUSPICIOUS / DANGEROUS]
+    D --> E[SQLite + interfaz accesible]
 ```
 
 La app nunca consulta Google directamente: el backend protege la clave y combina la reputación externa con reglas sencillas y explicables.
@@ -93,15 +91,45 @@ flutter run --dart-define=API_BASE_URL=http://192.168.1.100:8000
 
 `192.168.1.100` es solo un ejemplo; reemplazarlo por la IP real del equipo.
 
+Ejemplo indicando un dispositivo concreto:
+
+```powershell
+flutter run -d DEVICE_ID --dart-define=API_BASE_URL=http://192.168.100.72:8000
+```
+
+El teléfono y la computadora deben estar en la misma red. El backend debe ejecutarse con `--host 0.0.0.0` y el firewall debe permitir el puerto 8000.
+
 ## Variables de entorno
 
-El backend lee `GOOGLE_SAFE_BROWSING_API_KEY`. Copiar `backend/.env.example` a `backend/.env` y agregar una clave solo si se desea habilitar el proveedor. Sin clave, el backend sigue funcionando únicamente con heurísticas.
+El backend lee:
+
+- `GOOGLE_SAFE_BROWSING_API_KEY`: opcional. Sin clave se usan únicamente heurísticas.
+- `DEMO_MODE`: `false` por defecto. Cuando vale `true`, habilita solamente los tres casos controlados documentados en `docs/demo.md`.
 
 La app lee `API_BASE_URL` mediante `--dart-define`. No se deben guardar URLs de producción en el código.
 
-## Integración Android preparada
+## Integración Android
 
-El manifiesto declara `INTERNET` y filtros no verificados para recibir enlaces HTTP/HTTPS y texto compartido. Esto permite evolucionar la integración sin solicitar todavía de forma agresiva el rol de navegador predeterminado. La recepción completa del intent y la solicitud de `RoleManager.ROLE_BROWSER` quedan para una iteración posterior.
+El manifiesto declara `INTERNET` y filtros no verificados para recibir enlaces HTTP/HTTPS y texto compartido. `ACTION_SEND` y `ACTION_VIEW` están conectados mediante un canal Kotlin pequeño: la URL se extrae y se precarga en la pantalla de análisis. Configuración permite abrir los ajustes de aplicaciones predeterminadas de Android, pero ProtegeLink nunca obliga a seleccionarlo.
+
+## Generar APK
+
+Debug:
+
+```powershell
+cd mobile
+flutter build apk --debug
+```
+
+Release para una computadora de ejemplo en la red local:
+
+```powershell
+flutter build apk --release --dart-define=API_BASE_URL=http://192.168.100.72:8000
+```
+
+La IP es solo un ejemplo. El APK se genera en `mobile/build/app/outputs/flutter-apk/`. El manifiesto permite HTTP sin cifrar únicamente para facilitar la demostración académica local; una publicación real debe usar HTTPS y una configuración de seguridad más restrictiva.
+
+La guía [docs/demo.md](docs/demo.md) contiene un recorrido reproducible de cinco minutos con casos controlados para los tres estados.
 
 ## Estado actual
 
@@ -111,13 +139,15 @@ El manifiesto declara `INTERNET` y filtros no verificados para recibir enlaces H
 - [x] análisis heurístico inicial
 - [ ] integración completa Safe Browsing
 - [ ] navegador predeterminado
-- [ ] recepción automática de enlaces
-- [ ] historial SQLite
-- [ ] WebView protegido
+- [x] recepción de texto compartido con ACTION_SEND
+- [x] recepción de enlaces con ACTION_VIEW
+- [x] historial SQLite
+- [x] WebView limitado a resultados SAFE
 - [ ] diseño final Stitch
 - [ ] pruebas con dispositivo físico
 
 ## Seguridad y limitaciones
 
-Los pesos heurísticos son demostrativos y ajustables. Una puntuación baja no prueba que un sitio sea legítimo. Safe Browsing se usa solo si hay una clave configurada y su respuesta puede fallar o no contener amenazas nuevas. La [API Safe Browsing v5](https://developers.google.com/safe-browsing/reference/rest/v5/urls/search) está destinada a usos no comerciales; para un producto comercial se debe revisar Google Web Risk y sus condiciones.
+Los pesos heurísticos son demostrativos y ajustables. Cada palabra sensible distinta suma 5 puntos, hasta un máximo de 25, para que repetir un término no determine por sí solo la clasificación. Pueden existir falsos positivos y falsos negativos; una puntuación baja no prueba que un sitio sea legítimo. Safe Browsing se usa solo si hay una clave configurada y su respuesta puede fallar o no contener amenazas nuevas.
 
+El backend no visita la URL, no descarga HTML y no realiza crawling. El WebView solo acepta como entrada un análisis `SAFE`; las redirecciones y navegaciones internas todavía no se vuelven a analizar. La [API Safe Browsing v5](https://developers.google.com/safe-browsing/reference/rest/v5/urls/search) está destinada a usos no comerciales; para un producto comercial se debe revisar Google Web Risk y sus condiciones.

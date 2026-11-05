@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_name: str = "ProtegeLink API"
     google_safe_browsing_api_key: str | None = None
+    demo_mode: bool = False
     cors_origins: list[str] = ["http://localhost", "http://127.0.0.1"]
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")

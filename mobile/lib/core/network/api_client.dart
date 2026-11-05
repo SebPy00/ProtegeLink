@@ -6,14 +6,16 @@ import 'package:protegelink/core/constants/app_config.dart';
 import 'package:protegelink/core/errors/api_exception.dart';
 
 class ApiClient {
-  ApiClient({http.Client? client, String? baseUrl})
-    : _client = client ?? http.Client(),
-      _baseUrl = (baseUrl ?? AppConfig.apiBaseUrl).replaceFirst(
-        RegExp(r'/$'),
-        '',
-      );
+  ApiClient({http.Client? client, String? baseUrl, Duration? timeout})
+      : _client = client ?? http.Client(),
+        _timeout = timeout ?? AppConfig.requestTimeout,
+        _baseUrl = (baseUrl ?? AppConfig.apiBaseUrl).replaceFirst(
+          RegExp(r'/$'),
+          '',
+        );
 
   final http.Client _client;
+  final Duration _timeout;
   final String _baseUrl;
 
   Future<Map<String, dynamic>> get(String path) async {
@@ -39,23 +41,29 @@ class ApiClient {
     Future<http.Response> Function() request,
   ) async {
     try {
-      final response = await request().timeout(AppConfig.requestTimeout);
+      final response = await request().timeout(_timeout);
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw ApiException(
-          'El servidor no pudo completar la solicitud.',
+          'No pudimos revisar el enlace en este momento. Verificá tu conexión e intentá nuevamente.',
           statusCode: response.statusCode,
         );
       }
-      return jsonDecode(response.body) as Map<String, dynamic>;
+      final decodedBody = jsonDecode(response.body);
+      if (decodedBody is! Map<String, dynamic>) {
+        throw const FormatException('La respuesta no es un objeto JSON.');
+      }
+      return decodedBody;
     } on TimeoutException {
       throw const ApiException(
         'La revisión tardó demasiado. Intentá nuevamente.',
       );
     } on FormatException {
-      throw const ApiException('El servidor devolvió una respuesta no válida.');
+      throw const ApiException(
+        'No pudimos interpretar la respuesta del servicio. Intentá nuevamente.',
+      );
     } on http.ClientException {
       throw const ApiException(
-        'No se pudo conectar con el servicio. Revisá la red y la dirección del backend.',
+        'No pudimos revisar el enlace en este momento. Verificá tu conexión e intentá nuevamente.',
       );
     }
   }

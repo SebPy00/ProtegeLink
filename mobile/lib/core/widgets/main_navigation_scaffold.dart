@@ -12,10 +12,10 @@ class MainNavigationScaffold extends StatelessWidget {
   final Widget child;
 
   int get _selectedIndex => switch (currentLocation) {
-    '/history' => 1,
-    '/help' => 2,
-    _ => 0,
-  };
+        '/history' => 1,
+        '/help' => 2,
+        _ => 0,
+      };
 
   @override
   Widget build(BuildContext context) {

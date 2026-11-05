@@ -13,6 +13,7 @@ class BrowserPage extends StatefulWidget {
 
 class _BrowserPageState extends State<BrowserPage> {
   WebViewController? _controller;
+  bool _showLimitationNotice = true;
 
   @override
   void initState() {
@@ -22,10 +23,11 @@ class _BrowserPageState extends State<BrowserPage> {
         ..setJavaScriptMode(JavaScriptMode.disabled)
         ..setNavigationDelegate(
           NavigationDelegate(
-            // Toda navegación posterior deberá volver a analizarse antes de
-            // habilitarse. Por ahora se bloquea salir de la URL ya aprobada.
             onNavigationRequest: (request) {
-              return request.url == widget.analysis.url
+              final uri = Uri.tryParse(request.url);
+              final isWebUrl = uri != null &&
+                  (uri.scheme == 'http' || uri.scheme == 'https');
+              return isWebUrl
                   ? NavigationDecision.navigate
                   : NavigationDecision.prevent;
             },
@@ -49,7 +51,26 @@ class _BrowserPageState extends State<BrowserPage> {
                 ),
               ),
             )
-          : WebViewWidget(controller: controller),
+          : Column(
+              children: [
+                if (_showLimitationNotice)
+                  MaterialBanner(
+                    content: const Text(
+                      'ProtegeLink revisó la página inicial. Esta versión académica todavía no vuelve a analizar cada redirección o enlace interno.',
+                    ),
+                    leading: const Icon(Icons.info_outline),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          setState(() => _showLimitationNotice = false);
+                        },
+                        child: const Text('Entendido'),
+                      ),
+                    ],
+                  ),
+                Expanded(child: WebViewWidget(controller: controller)),
+              ],
+            ),
     );
   }
 }

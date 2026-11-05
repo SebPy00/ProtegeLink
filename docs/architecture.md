@@ -38,9 +38,8 @@ El backend puede consultar Google Safe Browsing v5. La clave vive solo en variab
 
 ## Almacenamiento local
 
-El historial se almacenará en SQLite dentro del teléfono. En esta primera base solo está definida la frontera del repositorio local; la persistencia se implementará en una clase posterior.
+El historial se almacena en SQLite dentro del teléfono mediante `sqflite`. Cada análisis correcto guarda URL, dominio, estado, puntaje, razones y fecha. La consulta ordena primero los registros más recientes.
 
 ## Integración Android
 
-`AndroidManifest.xml` prepara filtros para enlaces web y texto compartido. Una próxima iteración leerá los intents en Kotlin/Flutter y solicitará, con explicación previa, el rol oficial de navegador predeterminado en Android 10 o superior.
-
+`AndroidManifest.xml` declara filtros no verificados para enlaces web y texto compartido. `MainActivity.kt` lee `ACTION_SEND` y `ACTION_VIEW`, y entrega la URL a Flutter mediante un `MethodChannel`. Configuración abre los ajustes Android de aplicaciones predeterminadas; ProtegeLink no obliga a seleccionarlo ni solicita App Links para dominios que no controla.
