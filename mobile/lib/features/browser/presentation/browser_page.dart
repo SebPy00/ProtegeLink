@@ -13,7 +13,6 @@ class BrowserPage extends StatefulWidget {
 
 class _BrowserPageState extends State<BrowserPage> {
   WebViewController? _controller;
-  bool _showLimitationNotice = true;
 
   @override
   void initState() {
@@ -51,26 +50,7 @@ class _BrowserPageState extends State<BrowserPage> {
                 ),
               ),
             )
-          : Column(
-              children: [
-                if (_showLimitationNotice)
-                  MaterialBanner(
-                    content: const Text(
-                      'ProtegeLink revisó la página inicial. Esta versión académica todavía no vuelve a analizar cada redirección o enlace interno.',
-                    ),
-                    leading: const Icon(Icons.info_outline),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          setState(() => _showLimitationNotice = false);
-                        },
-                        child: const Text('Entendido'),
-                      ),
-                    ],
-                  ),
-                Expanded(child: WebViewWidget(controller: controller)),
-              ],
-            ),
+          : WebViewWidget(controller: controller),
     );
   }
 }
